@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -77,6 +78,12 @@ public class MainActivity extends AppCompatActivity {
                 new Thread(new Thread2()).start();
             } catch (IOException e) {
                 e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "Socket connection error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         }
     }
