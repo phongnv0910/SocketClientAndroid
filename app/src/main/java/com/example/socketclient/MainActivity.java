@@ -1,5 +1,6 @@
 package com.example.socketclient;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+@SuppressLint("SetTextI18n")
 public class MainActivity extends AppCompatActivity {
     Thread Thread1 = null;
     EditText etIP, etPort;
@@ -67,12 +69,12 @@ public class MainActivity extends AppCompatActivity {
             Socket socket;
             try {
                 socket = new Socket(SERVER_IP, SERVER_PORT);
-                output = new PrintWriter(socket.getOutputStream());
+                output = new PrintWriter(socket.getOutputStream(), true); // Enable auto-flush
                 input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        tvMessages.setText("Connected");
+                        tvMessages.setText("Connected" +"\n");
                     }
                 });
                 new Thread(new Thread2()).start();
@@ -102,9 +104,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                         });
                     } else {
-                        Thread1 = new Thread(new Thread1());
-                        Thread1.start();
-                        return;
+                        break; // Exit loop if message is null
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -122,15 +122,25 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            output.write(message);
-            output.flush();
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    tvMessages.append("client: " + message + "\n");
-                    etMessage.setText("");
-                }
-            });
+            try {
+                output.println(message);
+                output.flush(); // Explicitly flush the stream
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        tvMessages.append("client: " + message + "\n");
+                        etMessage.setText("");
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "Error sending message: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
         }
     }
 }
